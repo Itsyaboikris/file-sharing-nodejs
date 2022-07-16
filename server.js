@@ -12,6 +12,8 @@ const PORT = process.env.PORT || 3001
 const app = express()
 const server = http.createServer(app)
 
+app.use(express.urlencoded({extended: true}))
+
 const upload = multer ({dest: "uploads"})
 
 mongoose.connect(process.env.DATABASE_URL)
@@ -37,8 +39,22 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 	res.render("index", {fileLink: `${req.headers.origin}/file/${file.id}`})
 })
 
-app.get("/file/:id", async (req, res) => {
+app.route("/file/:id").get(handleDownload).post(handleDownload)
+
+async function handleDownload(req, res) {
 	const file = await File.findById(req.params.id)
+
+	if (file.password != null) {
+		if (req.body.password == null) {
+			res.render("password")
+			return
+		}
+
+		if (!(await bcrypt.compare(req.body.password, file.password))) {
+			res.render("password", {error: true})
+			return
+		}
+	} 
 
 	file.downloadCount++
 	await file.save()
@@ -46,7 +62,6 @@ app.get("/file/:id", async (req, res) => {
 	console.log(file.downloadCount)
 
 	res.download(file.path, file.originalName)
-
-})
+}
 
 server.listen(PORT, () => console.log(`Listening on ${PORT}`))
