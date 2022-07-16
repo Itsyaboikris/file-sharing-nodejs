@@ -33,8 +33,12 @@ app.post("/upload", upload.single("file"), async (req, res) => {
 	}
 
 	const file = await File.create(fileData)
-	console.log(file)
-	res.send(file.originalName)
+	
+	res.render("index", {fileLink: `${req.headers.origin}/file/${file.id}`})
+})
+
+app.get("/file/:id", (req, res) => {
+
 })
 
 server.listen(PORT, () => console.log(`Listening on ${PORT}`))
