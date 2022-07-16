@@ -1,13 +1,17 @@
+require("dotenv").config()
 const multer = require("multer")
+const mongoose = require ("mongoose")
 
 const express = require("express")
 const http = require("http")
 
-const PORT = 3001
+const PORT = process.env.PORT || 3001
 const app = express()
 const server = http.createServer(app)
 
 const upload = multer ({dest: "uploads"})
+
+mongoose.connect(process.env.DATABASE_URL)
 
 app.set("view engine", "ejs")
 
